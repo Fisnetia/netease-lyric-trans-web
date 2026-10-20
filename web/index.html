@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>网易云歌词翻译助手</title>
+<link rel="icon" href="/favicon.ico">
+<!-- 预先加载主题偏好 -->
+<script>
+  (function() {
+    try {
+      var saved = localStorage.getItem('ncm_theme');
+      var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+      var lowPower = localStorage.getItem('ncm_low_power_mode') === 'true';
+      window.__LOW_POWER_MODE__ = lowPower;
+      if (lowPower) {
+        document.documentElement.classList.add('low-power-mode');
+      }
+    } catch(e) {}
+  })();
+</script>
+<link rel="stylesheet" href="/static/style.css?v=20261020_v13">
+</head>
+<body class="is-home">
+
+<!-- 启动加载遮罩 -->
+<div id="splashOverlay" class="splash-overlay" aria-hidden="true">
+  <div class="splash-card">
+    <div class="splash-vinyl-box">
+      <div class="splash-vinyl-ring">
+        <div class="splash-vinyl-inner">
+          <img src="/cloudmusic.png" alt="Logo" class="splash-vinyl-logo">
+        </div>
+      </div>
+    </div>
+    <div class="splash-brand-title">网易云歌词翻译助手</div>
+    
+    <div class="splash-progress-track">
+      <div class="splash-progress-bar" id="splashProgressBar"></div>
+    </div>
+    <div class="splash-status-text" id="splashStatusText">加载中...</div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    window.Splash = {
+      _progress: 10,
+      setProgress: function(percent) {
+        if (percent < this._progress) return;
+        this._progress = percent;
+        var bar = document.getElementById('splashProgressBar');
+        if (bar) bar.style.width = Math.min(100, Math.max(8, percent)) + '%';
+      },
+      dismiss: function() {
+        var overlay = document.getElementById('splashOverlay');
+        if (!overlay || overlay.classList.contains('fade-out')) return;
+        this.setProgress(100);
+        setTimeout(function() {
+          overlay.classList.add('fade-out');
+          setTimeout(function() {
+            try { overlay.remove(); } catch(_) {}
+          }, 700);
+        }, 160);
+      }
+    };
+    // 超时兜底：最多 1.8 秒后淡出遮罩
+    setTimeout(function() {
+      if (window.Splash) window.Splash.dismiss();
+    }, 1800);
+  })();
+</script>
+
+<header>
+  <div class="brand-box" onclick="pokeAvatar()" title="戳戳看板娘~">
+    <div class="brand-avatar-wrap">
+      <img src="/cloudmusic.png" alt="CloudMusic Avatar" class="brand-avatar" id="brandAvatar" onerror="this.style.display='none'">
+      <span class="avatar-status-badge" title="工作台服务正常在线"></span>
+    </div>
+    <div class="brand-text">
+      <span class="brand-name">网易云歌词翻译助手</span>
+      <div class="brand-sub">双语歌词对轴、日汉词典与排版工作台~</div>
+    </div>
+    <!-- 交互对话气泡 -->
+    <div class="speech-bubble" id="speechBubble">
+      <span id="speechText">快去写翻译~</span>
+      <span class="bubble-arrow"></span>
+    </div>
+  </div>
+  <div class="header-right">
+    <button type="button" class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="切换深色/浅色外观">
+      <span id="themeIcon">☀️</span> <span id="themeLabel">日间</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+  <div id="banner" style="display:none"></div>
+
+  <div class="tabs" id="tabsBar" role="tablist" aria-label="功能导航">
+    <div class="tab-indicator" id="tabIndicator" aria-hidden="true"></div>
+    <div class="tab on" id="tab-home" role="tab" data-t="home" aria-selected="true" aria-controls="p-home" tabindex="0">🏠 主页</div>
+    <div class="tab" id="tab-pick" role="tab" data-t="pick" aria-selected="false" aria-controls="p-pick" tabindex="-1">🔍 寻词</div>
+    <div class="tab" id="tab-check" role="tab" data-t="check" aria-selected="false" aria-controls="p-check" tabindex="-1">🩺 体检</div>
+    <div class="tab" id="tab-nav" role="tab" data-t="nav" aria-selected="false" aria-controls="p-nav" tabindex="-1">🧭 导航</div>
+  </div>
+
+  <!-- ============ 主页概览 ============ -->
+  <section id="p-home" class="tab-pane" role="tabpanel" aria-labelledby="tab-home">
+    
+    <!-- 顶部标题栏 -->
+    <div class="dash-hero-header dash-anim-row dash-anim-row-0">
+      <div class="dash-hero-top-bar" style="justify-content: flex-end;">
+        <button type="button" class="dash-hero-theme-btn" onclick="toggleTheme()" title="切换深浅外观">
+          <span id="dashThemeIcon">☀️</span> <span id="dashThemeLabel">日间</span>
+        </button>
+      </div>
+
+      <div class="dash-hero-brand">
+        <div class="dash-hero-icon-box">
+          <img src="/cloudmusic.png" alt="CloudMusic" class="dash-hero-logo" onerror="this.style.display='none'">
+        </div>
+        <h1 class="dash-hero-big-title">网易云歌词翻译工作台</h1>
+        <p class="dash-hero-sub-text">让双语对轴、查词翻译与格式规整更加轻松~</p>
+      </div>
+    </div>
+
+    <!-- 概览指标卡片 -->
+    <div class="dash-stats-grid dash-anim-row dash-anim-row-1">
+      <div class="dash-stat-card" onclick="document.getElementById('localWorkspaceFileInput')?.click()" title="点击导入本地歌词文稿">
+        <div class="dash-stat-top">
+          <span class="dash-stat-label">工作区文稿</span>
+          <span class="dash-stat-icon">📄</span>
+        </div>
+        <div class="dash-stat-num" id="dashFilesCount">0</div>
+        <div class="dash-stat-desc">点击导入文稿</div>
+      </div>
+
+      <div class="dash-stat-card" onclick="window.Manuscripts?.open()" title="打开文稿管理工作台">
+        <div class="dash-stat-top">
+          <span class="dash-stat-label">本地稿件箱</span>
+          <span class="dash-stat-icon">📁</span>
+        </div>
+        <div class="dash-stat-num" id="dashManuscriptsCount">0</div>
+        <div class="dash-stat-desc">管理私密文稿</div>
+      </div>
+
+      <div class="dash-stat-card" onclick="goToTab('nav')" title="前往网易云与查词导航">
+        <div class="dash-stat-top">
+          <span class="dash-stat-label">官方百科入口</span>
+          <span class="dash-stat-icon">🧭</span>
+        </div>
+        <div class="dash-stat-num text-sm" style="font-size:15px;font-weight:600">百科 Wiki</div>
+        <div class="dash-stat-desc">前往常用导航</div>
+      </div>
+
+      <div class="dash-stat-card" onclick="copyDashboardTime()" title="点击复制当前系统时间">
+        <div class="dash-stat-top">
+          <span class="dash-stat-label">本地时间</span>
+          <span class="dash-stat-icon">🕒</span>
+        </div>
+        <div class="dash-stat-num text-time" id="dashTimeText">--:--:--</div>
+        <div class="dash-stat-desc" id="dashTimeDesc">正在同步系统时间…</div>
+      </div>
+    </div>
+
+    <!-- 本地工作区文稿列表 -->
+    <div class="card dash-files-card dash-anim-row dash-anim-row-2">
+      <div class="card-header-row">
+        <div>
+          <h2>我的工作区文稿</h2>
+          <div class="dash-card-sub muted" style="font-size:12px;margin-top:2px">本地持久化存储，支持对轴、编辑与一键下载</div>
+        </div>
+        <div class="card-header-actions">
+          <input type="file" id="localWorkspaceFileInput" accept=".lrc,.txt" multiple style="display:none">
+          <button type="button" class="mini primary" onclick="document.getElementById('localWorkspaceFileInput').click()" title="从当前电脑选择 .lrc 或 .txt 导入工作区">📥 导入文稿…</button>
+          <button type="button" class="mini danger" id="btnClearWorkspace" onclick="clearWorkspaceFiles()" title="清空当前浏览器本地文稿缓存" style="display:none">🗑️ 清空</button>
+        </div>
+      </div>
+
+      <!-- 拖拽上传支持区 -->
+      <div id="dashWorkspaceDropZone" class="dash-drop-zone" onclick="document.getElementById('localWorkspaceFileInput').click()" title="点击或拖拽文件到此处导入">
+        <div class="dash-drop-zone-content">
+          <span class="dash-drop-icon"></span>
+          <div class="dash-drop-text">将 <code>.lrc</code> 或 <code>.txt</code> 翻译文件拖拽至此处</div>
+        </div>
+      </div>
+
+      <div id="dashFilesTableContainer" class="dash-table-wrap">
+        <div class="muted">正在读取工作区文稿…</div>
+      </div>
+    </div>
+
+    <!-- 页脚信息 -->
+    <div class="dash-footer-note dash-anim-row dash-anim-row-4">
+      <span>Translation Editing Tool</span>
+      <span class="dash-sep">·</span>
+      <span>By: FinaFina</span>
+    </div>
+
+  </section>
+
+  <!-- ============ 找歌与提取 ============ -->
+  <section id="p-pick" class="tab-pane hide" role="tabpanel" aria-labelledby="tab-pick">
+    <div class="card">
+      <h2>搜索目标歌曲 <span class="tip-wrap"><span class="tip-btn" tabindex="0">?</span><span class="tip-box">按歌名和歌手检索网易云官方曲库，支持智能相似度打分与候选排序。点击候选行即可拉取歌曲元数据、原文歌词与现有翻译。</span></span></h2>
+      <div class="row">
+        <div class="fld grow"><label>歌曲名或歌曲 ID</label><input id="q" placeholder="例如：アイドル / Lemon / 186016"></div>
+        <div class="fld grow"><label>歌手名 <span class="muted">（可选，用于精准过滤）</span></label><input id="qArtist" placeholder="例如：YOASOBI / 米津玄師"></div>
+        <button class="primary" onclick="doSearch()">搜索曲库</button>
+      </div>
+      <div id="searchMsg" class="muted"></div>
+      <table id="candTbl" class="hide">
+        <thead><tr><th style="width:60px">相似度</th><th style="width:110px">歌曲编号</th>
+          <th>歌名</th><th>歌手</th><th>专辑</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div id="pagerBox" class="pager-bar hide"></div>
+    </div>
+
+    <!-- 选定歌曲与歌词检视面板 (代替原来的自动投稿卡片) -->
+    <div class="card hide" id="songInspectorCard">
+      <div class="card-header-row" style="margin-bottom:12px">
+        <h2 style="margin:0">🎵 歌曲详情与歌词检视</h2>
+        <div id="inspHeaderLinks" class="card-header-actions"></div>
+      </div>
+
+      <!-- 歌曲图文元数据区 -->
+      <div class="song-inspector-hero" id="inspHero">
+        <div class="song-cover-thumb" id="inspCoverThumb">
+          <img id="inspCoverImg" src="" alt="Album Cover" style="display:none" onload="this.style.display='block';$('#inspCoverFallback').style.display='none'">
+          <div id="inspCoverFallback" class="song-cover-fallback">🎵</div>
+        </div>
+        <div class="song-hero-meta">
+          <div class="song-hero-title-row">
+            <h3 class="song-hero-title" id="inspTitle">-</h3>
+            <span class="song-hero-id" id="inspIdBadge">ID: -</span>
+          </div>
+          <div class="song-hero-sub">
+            <span id="inspArtists">-</span> · <span id="inspAlbum" class="muted">-</span>
+          </div>
+          <div class="song-badges-row" id="inspBadges">
+            <span class="pill dim" id="badgeOrig">原文检查中</span>
+            <span class="pill dim" id="badgeTrans">翻译检查中</span>
+            <span class="pill dim" id="badgeUser" style="display:none"></span>
+            <span class="pill dim" id="badgeRoma" style="display:none">含罗马音</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 快捷操作栏 -->
+      <div class="song-actions-bar" style="margin:14px 0 10px">
+        <button type="button" class="mini primary" onclick="sendInspectorToAligner()" title="将本歌曲已上架的原文歌词直接送入双轨对轴器">⚡ 送入智能对轴器</button>
+        <button type="button" class="mini" onclick="sendInspectorToEditor()" title="将原文与线上翻译并排载入双语编辑器">✏️ 送入双语编辑器</button>
+        <button type="button" class="mini" onclick="copyInspectorLyric('orig')">📋 复制原文歌词</button>
+        <button type="button" class="mini" onclick="copyInspectorLyric('trans')">📋 复制翻译歌词</button>
+        <button type="button" class="mini" onclick="copyInspectorLyric('bi')">📋 复制双语对照</button>
+        <button type="button" class="mini" onclick="downloadInspectorLrc()">💾 下载 LRC 歌词</button>
+      </div>
+
+      <!-- 歌词多轨预览器 -->
+      <div class="lyric-view-container">
+        <div class="lyric-view-tabs" role="tablist">
+          <button type="button" class="mode-tab-btn on" id="btnTrackOrig" onclick="switchInspectorTrack('orig')">📜 原文歌词</button>
+          <button type="button" class="mode-tab-btn" id="btnTrackTrans" onclick="switchInspectorTrack('trans')">🌐 线上翻译</button>
+          <button type="button" class="mode-tab-btn" id="btnTrackRoma" onclick="switchInspectorTrack('roman')">🔤 罗马音歌词</button>
+          <button type="button" class="mode-tab-btn" id="btnTrackBi" onclick="switchInspectorTrack('bi')">🔀 双语对照</button>
+          <span class="muted" style="margin-left:auto;font-size:12px" id="inspTrackLineCount">0 行</span>
+        </div>
+        <textarea id="inspLyricText" readonly class="lyric-inspector-textarea" placeholder="歌词拉取中…"></textarea>
+      </div>
+    </div>
+
+    <!-- 译文录入与保存区 -->
+    <div class="card" id="lyricBox">
+      <h2>本地译文录入与保存 <span class="tip-wrap"><span class="tip-btn" tabindex="0">?</span><span class="tip-box">支持拖拽导入 <code>.txt</code> / <code>.lrc</code> 或直接粘贴译文文本。</span></span></h2>
+      <div class="row">
+        <div class="fld grow"><label>歌曲名 <span class="muted">（保存文件的主名称）</span></label>
+          <input id="lyTitle"></div>
+        <div class="fld" style="width:140px"><label>歌曲编号 <span class="muted">（可选）</span></label>
+          <input id="lyId"></div>
+        <div class="fld" style="width:150px"><label>&nbsp;</label>
+          <button onclick="lyLookup()">按编号反查歌名</button></div>
+      </div>
+
+      <div class="row" style="align-items:stretch">
+        <div class="fld grow">
+          <label>中文译文内容 <span class="muted">（必填 · 支持纯文本或打轴 LRC）</span></label>
+          <div class="drop" id="dropTrans">
+            拖拽文件到此处，或
+            <button type="button" class="mini" onclick="document.getElementById('fileTrans').click()">选择文件</button>
+            <input type="file" id="fileTrans" accept=".lrc,.txt" style="display:none">
+            <span id="transInfo"></span>
+          </div>
+          <textarea id="lyTrans" rows="10"></textarea>
+        </div>
+        <div class="fld grow">
+          <label>日韩原文对照歌词 <span class="muted">（推荐 · 开启字符级高精对齐）</span></label>
+          <div class="drop" id="dropSource">
+            拖拽文件到此处，或
+            <button type="button" class="mini" onclick="document.getElementById('fileSource').click()">选择文件</button>
+            <input type="file" id="fileSource" accept=".lrc,.txt" style="display:none">
+            <span id="sourceInfo"></span>
+          </div>
+          <textarea id="lySource" rows="10"></textarea>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="primary" onclick="saveLyrics(null)">💾 保存到工作区</button>
+        <button onclick="downloadCurrentDraft()">导出为 LRC 文件</button>
+        <button onclick="lyClear()">清空输入</button>
+      </div>
+      <div id="lyMsg"></div>
+    </div>
+  </section>
+
+  <!-- ============ 检查 ============ -->
+  <section id="p-check" class="tab-pane hide" role="tabpanel" aria-labelledby="tab-check">
+    <div class="card">
+      <h2>歌曲翻译通道体检 <span class="tip-wrap"><span class="tip-btn" tabindex="0">?</span><span class="tip-box">检查歌曲的歌词、翻译开放状态，以及待上传翻译文件与歌词的适配情况。</span></span></h2>
+      <div class="row">
+        <div class="fld" style="width:200px"><label>歌曲编号 (Song ID)</label>
+          <input id="ckId" placeholder="例如：186016"></div>
+        <div class="fld grow"><label>中文译文文件</label><select id="ckFile"></select></div>
+        <button class="primary" onclick="doCheck()">执行体检</button>
+      </div>
+      <div class="chk" style="margin-bottom:10px">
+        <input type="checkbox" id="ckAuto" checked><label for="ckAuto"> 2D-DP 自动拆并</label>
+      </div>
+      <div id="ckOut"></div>
+    </div>
+  </section>
+
+  <!-- ============ 网易云导航与快捷入口 (替代原来的登录页) ============ -->
+  <section id="p-nav" class="tab-pane hide" role="tabpanel" aria-labelledby="tab-nav">
+    <div class="card">
+      <h2>网易云音乐导航入口</h2>
+      <p class="muted" style="margin-top:-6px;font-size:13px">网易云音乐官方页面快捷导航</p>
+      
+      <div class="nav-cards-grid">
+        <a href="https://music.163.com/#/wiki/contribution" target="_blank" rel="noopener noreferrer" class="nav-link-card">
+          <div class="nav-card-body">
+            <div class="nav-card-title">查看个人曲库贡献 <span class="nav-arrow">↗</span></div>
+            <div class="nav-card-desc">查看贡献历史、当前审核中的贡献</div>
+          </div>
+        </a>
+
+        <a href="https://music.163.com/" target="_blank" rel="noopener noreferrer" class="nav-link-card">
+          <div class="nav-card-body">
+            <div class="nav-card-title">网易云音乐 Web 官网 <span class="nav-arrow">↗</span></div>
+            <div class="nav-card-desc">官方网页播放器、歌曲试听、歌单与专辑快速索引</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>日语权威辞书与查词辅助</h2>
+      <p class="muted" style="margin-top:-6px;font-size:13px">精准词义核对与汉字假名读音解析利器</p>
+
+      <div class="nav-cards-grid">
+        <a href="https://www.weblio.jp/" target="_blank" rel="noopener noreferrer" class="nav-link-card">
+          <div class="nav-card-body">
+            <div class="nav-card-title">Weblio 辞書 <span class="nav-arrow">↗</span></div>
+            <div class="nav-card-desc">日本の統合型オンライン辞書サービス</div>
+          </div>
+        </a>
+
+        <a href="https://jisho.org/" target="_blank" rel="noopener noreferrer" class="nav-link-card">
+          <div class="nav-card-body">
+            <div class="nav-card-title">Jisho.org <span class="nav-arrow">↗</span></div>
+            <div class="nav-card-desc">A free, powerful Japanese-English online dictionary and search engine.</div>
+          </div>
+        </a>
+
+        <a href="https://www.mojidict.com/" target="_blank" rel="noopener noreferrer" class="nav-link-card">
+          <div class="nav-card-body">
+            <div class="nav-card-title">MOJi 辞书 <span class="nav-arrow">↗</span></div>
+            <div class="nav-card-desc">一起学日语，渡辞海</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- 歌曲直达跳转箱 -->
+    <div class="card">
+      <h2>单曲官方页面直达</h2>
+      <div class="row">
+        <div class="fld grow">
+          <label>歌曲编号 (Song ID)</label>
+          <input id="quickJumpSongId" placeholder="例如：186016 / 202369" onkeydown="if(event.key==='Enter')openQuickJumpSong()">
+        </div>
+        <button class="primary" onclick="openQuickJumpSong()">在网易云打开歌曲 ↗</button>
+        <button onclick="openQuickJumpWiki()">在百科编辑此歌 ↗</button>
+      </div>
+      <div class="muted" style="font-size:12.5px;margin-top:6px">
+        提示：输入歌曲 ID 即可直接在网易云官方网站打开该曲目的详情或贡献入口。
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 模块化前端脚本加载 -->
+<script src="/static/glsl-engine.js?v=20261020_v8"></script>
+<script src="/static/manuscripts.js?v=20261020_v14"></script>
+<script src="/static/ui.js?v=20261020_v11"></script>
+<script src="/static/workflow.js?v=20261020_v15"></script>
+<script src="/static/sidebar.js?v=20261020_v8"></script>
+<script src="/static/aligner.js?v=20261020_v14"></script>
+<script src="/static/chinese-conv.js?v=20261020_v8"></script>
+<script src="/static/lyric-editor.js?v=20261020_v8"></script>
+<script src="/static/jp-dict.js?v=20261020_v8"></script>
+<script src="/static/app.js?v=20261020_v14"></script>
+</body>
+</html>

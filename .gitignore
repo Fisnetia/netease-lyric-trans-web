@@ -1,0 +1,43 @@
+# Credentials & Session data (网易云凭据与临时会话缓存，严禁提交)
+.tmp/
+*.tmp
+cookie.json
+*cookie*.json
+
+# User working files, local launcher & sample directories (排除非代码、批处理与用户样本数据)
+*.bat
+*.cmd
+快速上手.md
+待投稿/
+Lyrics/
+_archive/
+watchlist.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Archives & Backups
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.bak
+*.bak-*
+*.bak.*
+*bak-original
+
+# Logs
+*.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
