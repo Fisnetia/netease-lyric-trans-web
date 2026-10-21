@@ -15,19 +15,26 @@
 
 ## 快速使用
 
-### 安装依赖
+### 方式一：免安装便携版（推荐 Windows 用户）
+
+从 [Releases](https://github.com/Fisnetia/netease-lyric-trans-web/releases) 下载 `netease-lyric-trans-portable-win64.zip`。  
+解压后直接双击 `启动工作台.exe` 即可使用，无需安装 Python 或手动配置依赖。
+
+### 方式二：Python 源码运行
+
+1. 安装依赖：
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 启动服务
+2. 启动服务：
 
 ```bash
 python gui.py
 ```
 
-在浏览器中打开 `http://127.0.0.1:8765/` 即可使用。
+在浏览器中打开 `http://127.0.0.1:8765/` 即可。
 
 ## 开源协议
 

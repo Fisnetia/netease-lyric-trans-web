@@ -15,13 +15,20 @@ An elegant, all-in-one web toolbox for bilingual lyric translation, timeline ali
 
 ## Quick Start
 
-### Installation
+### Method 1: Portable Version (Recommended for Windows)
+
+Download `netease-lyric-trans-portable-win64.zip` from [Releases](https://github.com/Fisnetia/netease-lyric-trans-web/releases).  
+Extract and double-click `启动工作台.exe` to run. No Python installation or package setup required.
+
+### Method 2: Run with Python
+
+1. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Launch
+2. Launch:
 
 ```bash
 python gui.py
