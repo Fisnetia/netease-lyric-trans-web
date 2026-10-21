@@ -111,13 +111,14 @@ def get_cloudmusic_img() -> Response:
 
 @app.get("/favicon.ico")
 def get_favicon() -> Response:
-    p = ROOT / "favicon.ico"
-    if p.exists():
-        return Response(
-            content=p.read_bytes(),
-            media_type="image/x-icon",
-            headers={"Cache-Control": "public, max-age=604800, immutable"},
-        )
+    for name in ("favicon.ico", "web/favicon.ico"):
+        p = ROOT / name
+        if p.exists():
+            return Response(
+                content=p.read_bytes(),
+                media_type="image/x-icon",
+                headers={"Cache-Control": "public, max-age=604800, immutable"},
+            )
     return get_cloudmusic_img()
 
 
