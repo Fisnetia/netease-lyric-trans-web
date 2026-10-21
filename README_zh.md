@@ -18,7 +18,7 @@
 ### 方式一：免安装便携版（推荐 Windows 用户）
 
 从 [Releases](https://github.com/Fisnetia/netease-lyric-trans-web/releases) 下载 `netease-lyric-trans-portable-win64.zip`。  
-解压后直接双击 `启动工作台.exe` 即可使用，无需安装 Python 或手动配置依赖。
+解压后直接双击 `网易云翻译助手.exe` 即可使用，无需安装 Python 或手动配置依赖。
 
 ### 方式二：Python 源码运行
 
