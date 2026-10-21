@@ -39,6 +39,10 @@
     --pill-info-bg: #eff6ff; --pill-info-txt: #2563eb; --pill-info-border: #bfdbfe;
     --pill-dim-bg: #f1f5f9; --pill-dim-txt: #64748b; --pill-dim-border: #e2e8f0;
 
+    /* 超链接与夜间模式对比度色彩 */
+    --link: #2563eb;
+    --link-hover: #e60026;
+
     /* 极光流光色彩与鼠标交互光核 */
     --aurora-1: rgba(230, 0, 38, 0.05);
     --aurora-2: rgba(37, 99, 235, 0.04);
@@ -87,6 +91,10 @@
     --pill-info-bg: rgba(59, 130, 246, 0.15); --pill-info-txt: #60a5fa; --pill-info-border: rgba(59, 130, 246, 0.3);
     --pill-dim-bg: rgba(148, 163, 184, 0.12); --pill-dim-txt: #94a3b8; --pill-dim-border: rgba(148, 163, 184, 0.25);
 
+    /* 超链接与夜间模式对比度色彩 */
+    --link: #60a5fa;
+    --link-hover: #ff4757;
+
     /* 极光流光色彩与鼠标交互光核 */
     --aurora-1: rgba(255, 71, 87, 0.16);
     --aurora-2: rgba(99, 102, 241, 0.14);
@@ -95,6 +103,23 @@
   }
 
   *{box-sizing:border-box}
+
+  /* 全局基础超链接与高对比度支持（防止夜间模式下退化为不可读的浏览器原生深蓝与深紫） */
+  a {
+    color: var(--link);
+    text-decoration: none;
+    transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+  }
+  a:visited {
+    color: var(--link);
+  }
+  a:hover {
+    color: var(--link-hover);
+    text-decoration: underline;
+  }
+  a:active {
+    color: var(--brand-hover);
+  }
 
   /* =========================================================================
      全局滚动条与页面布局防抖
@@ -4827,6 +4852,50 @@
 }
 
 /* 3. 歌曲详情与歌词检视面板 (Song Inspector) */
+.card-header-actions a,
+#inspHeaderLinks a,
+.insp-ext-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  background: var(--card);
+  color: var(--link);
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.card-header-actions a:visited,
+#inspHeaderLinks a:visited,
+.insp-ext-link:visited {
+  color: var(--link);
+}
+
+.card-header-actions a:hover,
+#inspHeaderLinks a:hover,
+.insp-ext-link:hover {
+  background: var(--tab-hover-bg);
+  border-color: var(--brand-glow);
+  color: var(--brand);
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card-header-actions a:active,
+#inspHeaderLinks a:active,
+.insp-ext-link:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
 .song-inspector-hero {
   display: flex;
   align-items: center;

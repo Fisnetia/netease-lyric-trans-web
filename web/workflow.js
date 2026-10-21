@@ -233,8 +233,8 @@ async function inspectSong(songId, optCand){
     const linksEl = $('#inspHeaderLinks');
     if(linksEl){
       linksEl.innerHTML = `
-        <a href="https://music.163.com/#/song?id=${songId}" target="_blank" rel="noopener noreferrer" class="mini" style="text-decoration:none">🔗 网易云播放 ↗</a>
-        <a href="https://music.163.com/#/wiki/song?songId=${songId}" target="_blank" rel="noopener noreferrer" class="mini" style="text-decoration:none">🔗 百科词条 ↗</a>
+        <a href="https://music.163.com/#/song?id=${songId}" target="_blank" rel="noopener noreferrer" class="insp-ext-link mini">🔗 网易云播放 ↗</a>
+        <a href="https://music.163.com/#/wiki/song?songId=${songId}" target="_blank" rel="noopener noreferrer" class="insp-ext-link mini">🔗 百科词条 ↗</a>
       `;
     }
 
